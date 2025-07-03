@@ -8,6 +8,7 @@ EXTERNAL_REL_BUILDROOT=../base_external
 git submodule init
 git submodule sync
 git submodule update
+LOGFILE=build_$(date +%Y%m%d_%H%M%S).log
 
 set -e 
 cd `dirname $0`
@@ -23,11 +24,11 @@ then
 	else
 		echo "Run ./save_config.sh to save this as the default configuration in ${AESD_MODIFIED_DEFCONFIG}"
 		echo "Then add packages as needed to complete the installation, re-running ./save_config.sh as needed"
-		make -C buildroot defconfig BR2_EXTERNAL=${EXTERNAL_REL_BUILDROOT} BR2_DEFCONFIG=${AESD_DEFAULT_DEFCONFIG}
+		make BR2_EXTERNAL=${EXTERNAL_REL_BUILDROOT} BR2_DEFCONFIG=${AESD_DEFAULT_DEFCONFIG} -C buildroot defconfig  
 	fi
 else
 	echo "USING EXISTING BUILDROOT CONFIG"
 	echo "To force update, delete .config or make changes using make menuconfig and build again."
-	make -C buildroot BR2_EXTERNAL=${EXTERNAL_REL_BUILDROOT}
+	make BR2_EXTERNAL=${EXTERNAL_REL_BUILDROOT} -C buildroot 2>&1 | tee ${LOGFILE}
 
 fi
