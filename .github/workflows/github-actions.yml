@@ -1,4 +1,5 @@
 name: assignment-test
+
 on:
   push:
     tags-ignore:
@@ -11,26 +12,33 @@ jobs:
     container: cuaesd/aesd-autotest:24-assignment5-buildroot
     runs-on: self-hosted
     timeout-minutes: 120
+
     steps:
       - uses: actions/checkout@v2
 
       - name: Checkout submodules
         run: git submodule update --init --recursive
 
-      - uses: webfactory/ssh-agent@v0.5.3
+      - name: Start SSH agent and add key
+        uses: webfactory/ssh-agent@v0.5.3
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Fix known_hosts for GitHub
+      - name: Fix known_hosts for GitHub and expose agent to build
         run: |
+          mkdir -p /root/.ssh
           ssh-keygen -f "/root/.ssh/known_hosts" -R "github.com" || true
           ssh-keyscan github.com >> /root/.ssh/known_hosts
+          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
 
       - name: Run full test
         env:
           GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no"
           FORCE_UNSAFE_CONFIGURE: 1
-        run: ./full-test.sh
+        run: |
+          export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no"
+          export SSH_AUTH_SOCK=$SSH_AUTH_SOCK
+          ./full-test.sh
 
       - name: Cleanup
         if: always()
