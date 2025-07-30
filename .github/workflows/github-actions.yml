@@ -18,6 +18,7 @@ jobs:
             with:
                 ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
                 # Fix known_hosts issue with GitHub
+                
       	  - name: Fix known_hosts for GitHub
             run: |
                 ssh-keygen -f "/root/.ssh/known_hosts" -R "github.com" || true
